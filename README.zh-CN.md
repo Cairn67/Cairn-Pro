@@ -42,11 +42,40 @@ Cairn Pro 会修补原厂 `boot.img`,使一段自带的内核态载荷在内核�
 [docs/THIRD-PARTY.md](docs/THIRD-PARTY.md)。
 
 ## 构建
-
 见 [docs/BUILDING.md](docs/BUILDING.md)。简述:需要与机型匹配的原厂 `boot.img`、
 Android SDK,以及 Java/Kotlin 工具链。提供的脚本不会在构建时下载任何东西,也不会
 签名产物。
+## 成品下载 (v1.0.1)
+预构建产物发布在 [GitHub Releases](https://github.com/Cairn67/Cairn-Pro/releases)。
+**不发布任何内核/boot 镜像成品** —— 请用你自己的原厂 `boot.img` 为自己的设备构建。
 
+| 产物 | 说明 | SHA-256 |
+|---|---|---|
+| `cairn-kernel-builder-linux-arm64` | 动态修补器二进制(AArch64 Linux)。指向原厂 `boot.img`,自动识别内核版本、从镜像自身推导所有 hook 点,输出修补后镜像与配套的零密钥 `core.cld` | `4c1389002dde8b89fd8ff247a8683c2974bcc5dd971356e4a50ecbcefaac12fd` |
+| `core-V1.0.1.cld` | 内核载荷分离形态(64 KiB + 48 字节头)。仅与 bootstrap 记录摘要为 `be32ec9b…` 的镜像配对;不匹配即加载失败(fail-closed,设计如此) | `d2d05a42f006a4e597770ae77394dd65c6ac60ff60d3a14577d682f6c720d8c3` |
+| `Cairn-Pro-V1.0.1-Turbo6-matched.apk` | 管理器 APP(versionName 1.0.1),内嵌配套 core 用于恢复。与上述修补器为 **一加 Turbo 6 (PLU110) 17.0.0.100** 构建的镜像开箱配套 | `eae11c9dd5dbb40d88039ab4ae83ebe034eb3b840cd942d43d65c46d0bdd19ff` |
+
+### 兼容性警告 —— 使用修补器前必读
+
+动态修补器**处于实验阶段,非常不稳定**,仅支持少数机型,不是"一个二进制通吃所有
+手机"的通用工具:
+
+- 目前只在 **一加 Turbo 6 (PLU110)、ColorOS 17.0.0.100**(内核
+  `6.6.118-android15-8-g9bc34d5b0c79-abogki537459655-4k`)上做过端到端验证
+  (QEMU 启动 + 载荷加载)。
+- 工具**没有"支持机型数据库"**。对其他手机,它可能直接拒绝该内核(这是有意的
+  fail-closed 行为),也可能——如果结构碰巧能被启发式识别——产出一个从未在真机
+  上测试过的镜像。**两种结果一律按"不支持"对待**;对未验证机型,即便工具接受了
+  也不要刷入,除非你自担全部后果。
+- 内核系列被拒绝是设计行为:当某个系列无法用稳定的结构规则描述时(例如 6.12),
+  工具选择拒绝而不是猜测。
+- 每个输出目录的 `verification-status.json` 都带有 `posture: experimental-qemu-only`
+  与 `real_device_validated: false` 标记,直到有人在真实硬件上完成测试为止。
+- 输出目录当前硬编码为 `/storage/emulated/0/OPPO/适配`(作者自己的设备路径);
+  需要交互式终端,暂不支持脚本化调用。
+
+修补器**不重签 AVB**。在启用校验的锁定 bootloader 上,修补后的镜像无法启动;
+解锁 BL 是前提,降级回滚则是另一回事,与此无关。
 ## 本仓库不包含什么
 
 发布树只有源码与许可,刻意排除了:
@@ -59,8 +88,11 @@ Android SDK,以及 Java/Kotlin 工具链。提供的脚本不会在构建时下�
 如果你在找一个能直接刷的镜像:这里没有。请用你自己的厂商镜像、为你的设备构建。
 
 ## 支持与贡献
-
 - 设计问题:开 issue。
 - 安全或滥用问询:见 [SECURITY.md](SECURITY.md)。
 - 参与开发:见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+## AI 辅助声明
+本仓库部分内容在作者的交互式指导下借助 AI 工具完成,包括文档、构建工具链,以及
+应用与修补器的部分代码。所有发布内容均经作者审阅与测试,责任由作者承担。
 
