@@ -1150,6 +1150,16 @@ public class MainActivity extends androidx.activity.ComponentActivity {
             
             String visibleDetail = st == ST_NO_ROOT && keyLoaded
                     ? l("Authentication failed", "认证失败") : "";
+            if (st == ST_WORKING) {
+                if ("?".equals(detectedKernelVersion) || "unknown".equals(detectedKernelVersion)) {
+                    visibleDetail = l("Unable to read the Cairn Pro kernel patch version",
+                            "无法读取 Cairn Pro 内核补丁版本");
+                } else if (!appVersionName.equals(detectedKernelVersion)) {
+                    visibleDetail = l("Version mismatch", "版本不一致") + " · APP " + appVersionName
+                            + " / " + l("Kernel patch", "内核补丁") + " " + detectedKernelVersion;
+                }
+            }
+            tvDetail.setTextColor(st == ST_WORKING ? C_WARN : C_DIM);
             if (!android.text.TextUtils.equals(tvDetail.getText(), visibleDetail)) tvDetail.setText(visibleDetail);
             tvDetail.setVisibility(visibleDetail.isEmpty() ? View.GONE : View.VISIBLE);
             if (changed && tvBigState.isLaidOut() && tvBigState.isShown()) {

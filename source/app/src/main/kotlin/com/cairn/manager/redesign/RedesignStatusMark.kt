@@ -33,6 +33,7 @@ class RedesignStatusMark(context: Context) : View(context) {
         canvas.save()
         canvas.translate(left, top)
         paint.color = tint
+        paint.strokeWidth = if (glyph == Glyph.CHECK) 2.5f else 2.0f
         when (glyph) {
             Glyph.CHECKING -> {
                 paint.style = Paint.Style.STROKE

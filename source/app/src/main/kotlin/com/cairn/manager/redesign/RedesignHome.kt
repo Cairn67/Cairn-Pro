@@ -162,7 +162,35 @@ class RedesignHome(
         device.addView(divider(context))
         device.addView(factRow(context, t("Architecture", "架构"), android.os.Build.SUPPORTED_ABIS.firstOrNull() ?: "—", last = true))
         body.addView(device)
-        entrySections = listOf(status, facts, deviceHeader, device)
+        val repository = row(context).apply {
+            minimumHeight = dp(64)
+            setPadding(dp(15), dp(12), dp(15), dp(12))
+            background = RedesignFrost.drawable(this, 18)
+            addPressMotion()
+            contentDescription = t("Open Cairn Pro on GitHub", "打开 Cairn Pro GitHub 仓库")
+            setOnClickListener {
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://github.com/Cairn67/Cairn-Pro"))
+                if (context !is android.app.Activity) intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    context.startActivity(intent)
+                } catch (_: android.content.ActivityNotFoundException) {
+                    android.widget.Toast.makeText(context,
+                        t("No browser available", "没有可用的浏览器"), android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        val repositoryCopy = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            addView(text(context, t("GitHub repository", "GitHub 仓库"), 14f, p.primary, true))
+            addView(text(context, "Cairn67 / Cairn-Pro", 11f, p.secondary, false), margin(0, 4, 0, 0))
+        }
+        repository.addView(repositoryCopy, LinearLayout.LayoutParams(0, -2, 1f))
+        repository.addView(text(context, "↗", 22f, p.accent, true).apply {
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+        }, LinearLayout.LayoutParams(dp(28), -2))
+        body.addView(repository, margin(0, 14, 0, 0))
+        entrySections = listOf(status, facts, deviceHeader, device, repository)
 
         val auth = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
