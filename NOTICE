@@ -1,0 +1,28 @@
+Cairn
+Copyright (C) 2026 Cairn contributors
+
+This product includes software developed by third parties. The full text of each
+licence is in the LICENSES/ directory, and a per-component list with version,
+commit, and usage is in docs/THIRD-PARTY.md.
+
+Summary of components:
+
+  lz4/lz4                        BSD-2-Clause   LZ4 legacy frame codec (vendored)
+  KernelSU                       GPL-3.0        bottom-bar interaction reference
+  compose-miuix-ui/miuix         Apache-2.0     backdrop / blur runtime dependency
+  Kyant0/AndroidLiquidGlass      Apache-2.0     glass lens and vibrancy source
+  QWEA0/Liquid-Glass-Android     MIT            lens SDF and press animation source
+  liquid_design                  MIT            jelly press / switch motion model
+  PrismalAGSL                    MIT            view no longer in the tree; see below
+
+Note: the PrismalAGSL-derived implementation was removed from Cairn during development.
+Its licence text is retained only because earlier reference material may have been read;
+no PrismalAGSL code is present in this tree. See docs/THIRD-PARTY.md for details.
+
+Additionally, KernelPatch (bmax121/KernelPatch, GPL-2.0) is credited as the source of
+the *mechanism idea* behind the in-kernel UID allowlist. No KernelPatch code is present.
+See docs/THIRD-PARTY.md, section "Mechanism references, no code reuse".
+
+Linux is licensed under GPL-2.0-only with the syscall note. Kernel-side Cairn code is
+GPL-2.0-only in order to be compatible with it. This notice does not relicense Linux or
+any third-party material.

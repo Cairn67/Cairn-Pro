@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark-mode colour palette. -->
+<resources>
+    <color name="bg_base">#FF121417</color>
+    <color name="bg_elevated">#FF1B1E23</color>
+    <color name="glass_tint">#24FFFFFF</color>
+    <color name="glass_tint_strong">#32FFFFFF</color>
+    <color name="glass_tint_nav">#38FFFFFF</color>
+    <color name="glass_tint_pressed">#4AFFFFFF</color>
+    <color name="glass_highlight">#66FFFFFF</color>
+    <color name="glass_border">#36FFFFFF</color>
+    <color name="glass_sheen">#28FFFFFF</color>
+    <color name="text_primary">#FFF2F3F5</color>
+    <color name="text_secondary">#FFB8BDC5</color>
+    <color name="text_tertiary">#FF858B95</color>
+    <color name="ok">#FF6BD99A</color>
+    <color name="warn">#FFE8C36A</color>
+    <color name="err">#FFE58A8A</color>
+    <color name="info">#FF8DB9E8</color>
+</resources>

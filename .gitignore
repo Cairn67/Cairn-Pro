@@ -1,0 +1,25 @@
+# Build output
+target/
+*.o
+*.apk
+*.so
+*.bin
+*.img
+*.cld
+
+# Local toolchain caches
+.gradle/
+*.class
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Never commit credentials or device material
+*.keystore
+*.p12
+*.jks
+*.pem
+keys/

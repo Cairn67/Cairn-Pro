@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- Light-mode colour palette. -->
+<resources>
+
+    <color name="bg_base">#FFF6F7F8</color>
+    <color name="bg_elevated">#FFFFFFFF</color>
+
+    <color name="glass_tint">#14FFFFFF</color>
+    
+    <color name="glass_tint_strong">#22FFFFFF</color>
+    
+    <color name="glass_tint_nav">#1AFFFFFF</color>
+    
+    <color name="glass_tint_pressed">#2EFFFFFF</color>
+
+    <color name="glass_highlight">#5CFFFFFF</color>
+    <color name="glass_border">#1FFFFFFF</color>
+    <color name="glass_sheen">#33FFFFFF</color>
+
+    <color name="text_primary">#FFF2F5FA</color>
+    <color name="text_secondary">#B3C8D2E0</color>
+    <color name="text_tertiary">#66A8B4C8</color>
+
+    <color name="ok">#FF4ADE80</color>
+    <color name="warn">#FFFBBF24</color>
+    <color name="err">#FFF87171</color>
+    <color name="info">#FF60A5FA</color>
+
+    <color name="blob_cyan">#6642E8F5</color>
+    <color name="blob_purple">#66A855F7</color>
+    <color name="blob_orange">#55FB923C</color>
+    <color name="blob_blue">#554F8CFF</color>
+
+</resources>
