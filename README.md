@@ -35,7 +35,7 @@ behind specific decisions — why the frame layout is derived from the target, w
 allowlist fails closed, why a kernel family can be rejected outright — is collected in
 [docs/DESIGN-NOTES.md](docs/DESIGN-NOTES.md).
 
-## Downloads (v1.0.1)
+## Downloads (v1.0.2)
 
 Prebuilt artifacts are attached to the
 [GitHub Releases](https://github.com/Cairn67/Cairn-Pro/releases) page. **No kernel/boot
@@ -46,7 +46,31 @@ stock `boot.img`.
 |---|---|---|
 | `cairn-kernel-builder-linux-arm64` | The dynamic patcher binary (AArch64 Linux). Point it at a stock `boot.img`; it identifies the kernel version, derives every hook site from the image itself, and writes the patched image plus a matching zero-key `core.cld` | `4c1389002dde8b89fd8ff247a8683c2974bcc5dd971356e4a50ecbcefaac12fd` |
 | `core-V1.0.1.cld` | Kernel payload, detached form (64 KiB + 48-byte header). Only compatible with images whose bootstrap pins digest `be32ec9b…`; a mismatched pair fails closed at load time by design | `d2d05a42f006a4e597770ae77394dd65c6ac60ff60d3a14577d682f6c720d8c3` |
-| `Cairn-Pro-V1.0.1-Turbo6-matched.apk` | The manager app (versionName 1.0.1), bundled with the matching core for recovery. Works out of the box with the OnePlus Turbo 6 (PLU110) 17.0.0.100 image built by the above binary | `eae11c9dd5dbb40d88039ab4ae83ebe034eb3b840cd942d43d65c46d0bdd19ff` |
+| `Cairn-Pro-V1.0.2-adaptive-core.apk` | The manager app (versionName 1.0.2). No longer bound to a single kernel: it submits every `core.cld` it can find to the kernel loader and keeps the one the kernel accepts. Works with the Turbo 6 17.0.0.100 image above, and with any other image as long as you drop that image's own `core.cld` next to the app | `bd3df859a6b3c40037f75f8acf9fbb9028848d28dd7ab4e2878889d8c527c9a5` |
+
+### What changed in 1.0.2 — no more per-kernel app builds
+
+Before 1.0.2, changing the kernel meant rebuilding, re-signing and redistributing the app,
+because the app linked exactly one `core.cld` into `libcairn.so` at build time. The kernel
+payload itself is still kernel-specific (its hook instruction words, prctl frame layout and
+struct offsets are compile-time constants), but the **app** no longer is. At self-test it
+walks a candidate list:
+
+```
+/data/data/com.cairn.manager/files/core.cld
+/sdcard/Android/data/com.cairn.manager/files/core.cld
+/data/adb/cairn/core.cld
+bundled blob (fallback)
+```
+
+Each candidate goes to the kernel loader, which accepts or rejects it by its own pinned
+digest. A core belonging to another kernel is rejected with `-22` exactly as before — the
+app just tries the next one. **The trust boundary is unchanged**: the app only offers
+candidates, the kernel still decides.
+
+To use a different kernel: run the patcher on that device's stock `boot.img`, copy the
+resulting `core.cld` into one of the paths above, and the app picks it up on the next
+self-test. See [docs/core-adaptive-loading.md](docs/core-adaptive-loading.md).
 
 ### Compatibility warning — read before using the patcher
 
