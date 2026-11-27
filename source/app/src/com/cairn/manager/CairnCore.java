@@ -88,10 +88,12 @@ public final class CairnCore {
     }
 
     public Res runRoot(long k0, long k1, String body) {
-        return runRoot(k0, k1, body, true);
+        return runRoot(k0, k1, body, true, null);
     }
-
     public Res runRoot(long k0, long k1, String body, boolean shell) {
+        return runRoot(k0, k1, body, shell, null);
+    }
+    public Res runRoot(long k0, long k1, String body, boolean shell, String corePath) {
         StringBuilder sb = new StringBuilder();
         if (shell) sb.append("SHELL\n");
         sb.append(body);
@@ -108,7 +110,12 @@ public final class CairnCore {
         }
         long rc;
         try {
-            rc = Native.spawnRoot(k0, k1, myCmd.getAbsolutePath(), myOut.getAbsolutePath());
+            if (corePath != null) {
+                rc = Native.spawnRootCore(k0, k1, myCmd.getAbsolutePath(),
+                                          myOut.getAbsolutePath(), corePath);
+            } else {
+                rc = Native.spawnRoot(k0, k1, myCmd.getAbsolutePath(), myOut.getAbsolutePath());
+            }
         } catch (Throwable t) {
             myCmd.delete();
             return new Res(-3, "spawnRoot failed: " + t);
@@ -123,6 +130,52 @@ public final class CairnCore {
     public Res selfTest(long k0, long k1) {
         return runRoot(k0, k1, "echo CAIRN_UID=$(id -u)\n");
     }
+
+    /**
+     * Candidate core containers, most specific first. The bundled one (null) is last.
+     * A core that does not belong to the running kernel is rejected by the kernel's own
+     * digest check, so trying several candidates cannot weaken the trust boundary.
+     */
+    public static List<File> coreCandidates(Context ctx) {
+        List<File> out = new ArrayList<>();
+        if (ctx != null) {
+            out.add(new File(ctx.getFilesDir(), "core.cld"));
+            File ext = ctx.getExternalFilesDir(null);
+            if (ext != null) out.add(new File(ext, "core.cld"));
+        }
+        out.add(new File(BASE + "/core.cld"));
+        return out;
+    }
+
+    private String acceptedCorePath = null;
+    private boolean coreResolved = false;
+
+    /** Runs the self test with automatic core selection across all candidates. */
+    public Res selfTestAuto(Context ctx, long k0, long k1) {
+        if (coreResolved) {
+            return runRoot(k0, k1, "echo CAIRN_UID=$(id -u)\n", true, acceptedCorePath);
+        }
+        Res last = null;
+        for (File f : coreCandidates(ctx)) {
+            if (!f.isFile() || f.length() < 49) continue;
+            Res r = runRoot(k0, k1, "echo CAIRN_UID=$(id -u)\n", true, f.getAbsolutePath());
+            last = r;
+            if (r.rc == 0) {
+                acceptedCorePath = f.getAbsolutePath();
+                coreResolved = true;
+                return r;
+            }
+            long err = r.coreLoadError();
+            // -22/-74: this core belongs to a different kernel. -13: wrong key, keep looking
+            // would not help, but a different core has the same key requirement, so stop.
+            if (err == -13) return r;
+        }
+        Res r = runRoot(k0, k1, "echo CAIRN_UID=$(id -u)\n");
+        return last != null ? last : r;
+    }
+
+    public String acceptedCorePath() { return acceptedCorePath; }
+    public void resetCoreSelection() { acceptedCorePath = null; coreResolved = false; }
 
     public boolean isWorking(long k0, long k1) {
         Res r = selfTest(k0, k1);

@@ -590,6 +590,7 @@ public class MainActivity extends androidx.activity.ComponentActivity {
         keyInput.setText("");
         k0 = k1 = 0;
         keyLoaded = false;
+        core.resetCoreSelection();
         flog.log("KEY", "cleared by user");
         toast(l("Key cleared", "密钥已清除"));
         refreshStatusAsync(false);
@@ -996,6 +997,7 @@ public class MainActivity extends androidx.activity.ComponentActivity {
         boolean ok = box.save(hex);
         flog.log("KEY", "Key loaded (value redacted)");
         keyLoaded = true;
+        core.resetCoreSelection();
         flog.log("KEY", "save=" + ok + " mode=" + box.mode()
                  + " boxLog=[" + box.logText().replace("\n", "|") + "]");
         flog.log("KEY", "calling refreshStatusAsync(true)");
@@ -1011,8 +1013,9 @@ public class MainActivity extends androidx.activity.ComponentActivity {
                 flog.log("AUTH", "skip selfTest: no key");
             } else {
                 flog.log("AUTH", "selfTest start (key redacted)");
-                CairnCore.Res r = core.selfTest(k0, k1);
+                CairnCore.Res r = core.selfTestAuto(MainActivity.this, k0, k1);
                 flog.log("AUTH", "selfTest rc=" + r.rc
+                        + " core=" + core.acceptedCorePath()
                         + " out=[" + r.text().replace("\n", "|") + "]");
                 boolean working = r.rc == 0;
                 boolean uidZero = false;
@@ -1033,9 +1036,11 @@ public class MainActivity extends androidx.activity.ComponentActivity {
                     detail = Language.text(MainActivity.this,"Authentication succeeded","提权成功")
                             + "\nCairn " + r.kernelVersion() + (ds.text().isEmpty() ? ""
                             : "\n" + ds.text().trim().replace("\n", "  "));
-                    if (!appVersionName.equals(detectedKernelVersion)) {
-                        detail += "\n⚠ APP " + appVersionName + " ≠ Cairn Pro " + detectedKernelVersion;
-                        flog.log("VERSION", "Version mismatch warning: app=" + appVersionName + " kernel=" + detectedKernelVersion);
+                    if ("unknown".equals(detectedKernelVersion)) {
+                        detail += "\n⚠ " + Language.text(MainActivity.this,
+                                "Kernel version could not be read; the core was still accepted",
+                                "未能读取内核版本号；但 core 已被接受");
+                        flog.log("VERSION", "Kernel version unreadable; core accepted anyway");
                     }
                 } else {
                     long coreError = r.coreLoadError();
@@ -1043,7 +1048,9 @@ public class MainActivity extends androidx.activity.ComponentActivity {
                         String reason = coreError == -13
                                 ? Language.text(MainActivity.this,"Key rejected by kernel loader","内核加载器拒绝了密钥")
                                 : coreError == -22 || coreError == -74
-                                ? Language.text(MainActivity.this,"Bundled core does not match the running kernel","内置载荷与当前内核不匹配")
+                                ? Language.text(MainActivity.this,
+                                        "No available core matches this kernel; place the core.cld produced for this kernel in the app files or /data/adb/cairn",
+                                        "没有与本内核匹配的 core；请把本内核对应的 core.cld 放进 APP 文件目录或 /data/adb/cairn")
                                 : Language.text(MainActivity.this,"Kernel core could not be loaded","内核核心载荷加载失败");
                         detail = reason + " (" + coreError + ")";
                     } else {

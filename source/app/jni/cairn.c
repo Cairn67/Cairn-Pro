@@ -516,7 +516,8 @@ static void run_buffer(const char *buf, long n)
 }
 
 long cairn_spawn_root(uint64_t k0, uint64_t k1,
-                      const char *cmd_path, const char *out_path)
+                      const char *cmd_path, const char *out_path,
+                      const char *core_path)
 {
     if (!cmd_path || !out_path) return -1;
 
@@ -540,8 +541,27 @@ long cairn_spawn_root(uint64_t k0, uint64_t k1,
         }
 
         g_recovery_output=of;
-        long core_rc=cairn_ensure_core(k0,k1,cairn_core_blob,
-            (unsigned long)(cairn_core_blob_end-cairn_core_blob));
+        long core_rc;
+        {
+            static unsigned char ext_core[48 + 1024 * 1024];
+            long en = 0;
+            if (core_path) {
+                int ef = op_rd(core_path);
+                if (ef >= 0) {
+                    en = read_all(ef, (char *)ext_core, sizeof(ext_core));
+                    sc1(SYS_close, ef);
+                    if (en <= 48) en = 0;
+                }
+            }
+            if (en > 48) {
+                core_rc = cairn_ensure_core(k0, k1, ext_core, (unsigned long)en);
+                emit(of, "CAIRN_CORE_SOURCE=external\n");
+            } else {
+                core_rc = cairn_ensure_core(k0, k1, cairn_core_blob,
+                    (unsigned long)(cairn_core_blob_end - cairn_core_blob));
+                emit(of, "CAIRN_CORE_SOURCE=bundled\n");
+            }
+        }
         if(core_rc){sc1(SYS_close,of);sc1(SYS_exit,6);}
         long r = raw_prctl_auth(k0, k1);
         if (r == 0) {
